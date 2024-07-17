@@ -76,8 +76,13 @@ void addressBreakdown(unsigned int addr, unsigned int lineSize)
 	if (lineSize == 16)
 	{
 		// 4000 lines in the cache
-		// getting offset 
-		for (int i = 124; i < 128; i++)
+
+        address = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + address;
+
+        cout << "Address binary = " << address << endl;
+
+        // getting offset
+        for (int i = 124; i < 128; i++)
 		{
 			offset = address[i];
 		}
@@ -205,4 +210,17 @@ int main()
 		cout <<"0x" << setfill('0') << setw(8) << hex << addr <<" ("<< msg[r] <<")\n";
 	}
 	cout << "Hit ratio = " << (100*hit/NO_OF_Iterations)<< endl;
+
+    cout << "Fully Associative Cache Simulator\n";
+
+    for(int inst=0;inst<NO_OF_Iterations;inst++)
+	{
+		addr = memGen2();
+		r = cacheSimFA(addr, 16);
+		if(r == HIT) hit++;
+		cout <<"0x" << setfill('0') << setw(8) << hex << addr <<" ("<< msg[r] <<")\n";
+	}
+	cout << "Hit ratio = " << (100*hit/NO_OF_Iterations)<< endl;
+
+    return 0;
 }
