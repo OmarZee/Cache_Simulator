@@ -93,6 +93,11 @@ void addressBreakdown(unsigned int addr, unsigned int lineSize)
 		}
 		// getting valid 
 		valid = address[0];
+
+        cout << "offset = " << offset << endl;
+        cout << "index = " << index << endl;
+        cout << "tag = " << tag << endl;
+        cout << "valid = " << valid << endl;
 	}
 	else if (lineSize == 32)
 	{
