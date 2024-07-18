@@ -186,6 +186,7 @@ cacheResType cacheSimFA(unsigned int addr, unsigned int lineSize)
 			if(counter == numberOfLines - 1){
 				int x = rand() % numberOfLines; // Randomly select an index
 				cache[x][j] = tag; // Update the tag
+				return MISS; // Capacity miss
 			}
 		}
 		counter++;
@@ -209,7 +210,7 @@ cacheResType cacheSimFA(unsigned int addr, unsigned int lineSize)
 
 char *msg[2] = {"Miss","Hit"};
 
-#define NO_OF_Iterations 100000 // Change to 1,000,000
+#define NO_OF_Iterations 10000 // Change to 1,000,000
 
 int main()
 {
@@ -219,7 +220,7 @@ int main()
 	int lineSize = 16;
 
 	// Cache initialization
-	cache[64000/lineSize][lineSize/4]; // Size of cache rows and columns according to lineSize
+	//cache[64000/lineSize][lineSize/4]; // Size of cache rows and columns according to lineSize
 
 	cout << "Direct Mapped Cache Simulator\n";
 
@@ -228,7 +229,7 @@ int main()
 		addr = memGen2();
 		r = cacheSimDM(addr, lineSize);
 		if(r == HIT) hit++;
-		cout <<"0x" << setfill('0') << setw(8) << hex << addr <<" ("<< msg[r] <<")\n";
+		cout <<"0x" << setfill('0') << setw(8)  << addr <<" ("<< msg[r] <<")\n";
 	}
 	cout << "Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
 
@@ -241,9 +242,9 @@ int main()
 		addr = memGen2();
 		r = cacheSimFA(addr, lineSize);
 		if(r == HIT) hit++;
-		cout <<"0x" << setfill('0') << setw(8) << hex << addr <<" ("<< msg[r] <<")\n";
+		cout <<"0x" << setfill('0') << setw(8) << addr <<" ("<< msg[r] <<")\n";
 	}
-	cout << "Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
+	cout << "FA Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
 
 	return 0;
 }
