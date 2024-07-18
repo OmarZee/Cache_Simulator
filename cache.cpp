@@ -81,23 +81,29 @@ void addressBreakdown(unsigned int addr, unsigned int lineSize)
 
         cout << "Address binary = " << address << endl;
 
+        int j = 0;
         // getting offset
         for (int i = 124; i < 128; i++)
 		{
-			offset = address[i];
+			offset[j] = address[i];
+            j++;
 		}
 		// getting index
+        j = 0;
 		for (int i = 113; i < 124; i++)
 		{
-			index = address[i];
+			index[j] = address[i];
+            j++;
 		}
 		// getting tag
+        j = 0;
 		for (int i = 1; i < 113; i++)
 		{
-			tag = address[i];
+			tag[j] = address[i];
+            j++;
 		}
 		// getting valid 
-		valid = address[0];
+		valid[0] = address[0];
 
         cout << "offset = " << offset << endl;
         cout << "index = " << index << endl;
