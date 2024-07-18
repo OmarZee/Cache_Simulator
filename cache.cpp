@@ -8,7 +8,13 @@ using namespace std;
 #define		DRAM_SIZE		(64*1024*1024)
 #define		CACHE_SIZE		(64*1024)
 
-string offset, index, tag, valid;
+// string offset = "0000", index = "000000000000";
+// string tag = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+char valid;
+
+int offset, index, tag;
+
+int offsetBits, indexBits, tagBits, validBits = 1;
 
 enum cacheResType {MISS=0, HIT=1};
 
@@ -69,107 +75,168 @@ unsigned int memGen6()
 	return (addr+=32)%(64*4*1024);
 }
 
+// void addressBreakdown(unsigned int addr, unsigned int lineSize)
+// {
+//     string address = unsignedIntToBinaryString(addr);
+
+// 	if (lineSize == 16)
+// 	{
+// 		// 4000 lines in the cache
+
+//         address = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + address;
+
+//         cout << "Address binary = " << address << endl;
+
+//         int j = 0;
+//         // getting offset
+//         for (int i = 124; i < 128; i++)
+// 		{
+// 			offset[j] = address[i];
+//             j++;
+// 		}
+// 		// getting index
+//         j = 0;
+// 		for (int i = 112; i < 124; i++)
+// 		{
+// 			index[j] = address[i];
+//             j++;
+// 		}
+// 		// getting tag
+//         j = 0;
+// 		for (int i = 1; i < 112; i++)
+// 		{
+// 			tag[j] = address[i];
+//             j++;
+// 		}
+// 		// getting valid 
+// 		valid = address[0];
+
+//         cout << "offset = " << offset << endl;
+//         cout << "index = " << index << endl;
+//         cout << "tag = " << tag << endl;
+//         cout << "valid = " << valid << endl;
+// 	}
+// 	else if (lineSize == 32)
+// 	{
+// 		// 2000 lines in the cache
+// 		int j = 0;
+// 		for (int i = 251; i < 256; i++)
+// 		{
+// 			offset[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting index
+// 		j = 0;
+// 		for (int i = 240; i < 251; i++)
+// 		{
+// 			index[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting tag
+// 		j = 0;
+// 		for (int i = 1; i < 240; i++)
+// 		{
+// 			tag[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting valid 
+// 		valid = address[0];
+// 	}
+// 	else if (lineSize == 64)
+// 	{
+// 		// 1000 lines in the cache
+// 		int j = 0;
+// 		for (int i = 506; i < 512; i++)
+// 		{
+// 			offset[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting index
+// 		j = 0;
+// 		for (int i = 495; i < 506; i++)
+// 		{
+// 			index[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting tag
+// 		j = 0;
+// 		for (int i = 1; i < 495; i++)
+// 		{
+// 			tag[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting valid 
+// 		valid = address[0];
+// 	}
+// 	else if (lineSize == 128)
+// 	{
+// 		// 500 lines in the cache
+// 		int j = 0;
+// 		for (int i = 1014; i < 1024; i++)
+// 		{
+// 			offset[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting index
+// 		j = 0;
+// 		for (int i = 1005; i < 1014; i++)
+// 		{
+// 			index[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting tag
+// 		j = 0;
+// 		for (int i = 1; i < 1005; i++)
+// 		{
+// 			tag[j] = address[i];
+// 			j++;
+// 		}
+// 		// getting valid 
+// 		valid = address[0];
+// 	}
+// }
+
 void addressBreakdown(unsigned int addr, unsigned int lineSize)
 {
-    string address = unsignedIntToBinaryString(addr);
-
 	if (lineSize == 16)
 	{
-		// 4000 lines in the cache
-
-        address = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + address;
-
-        cout << "Address binary = " << address << endl;
-
-        int j = 0;
-        // getting offset
-        for (int i = 124; i < 128; i++)
-		{
-			offset[j] = address[i];
-            j++;
-		}
-		// getting index
-        j = 0;
-		for (int i = 113; i < 124; i++)
-		{
-			index[j] = address[i];
-            j++;
-		}
-		// getting tag
-        j = 0;
-		for (int i = 1; i < 113; i++)
-		{
-			tag[j] = address[i];
-            j++;
-		}
-		// getting valid 
-		valid[0] = address[0];
-
-        cout << "offset = " << offset << endl;
-        cout << "index = " << index << endl;
-        cout << "tag = " << tag << endl;
-        cout << "valid = " << valid << endl;
+		offsetBits = 4;
+		indexBits = 12;
+		tagBits = 111;
 	}
 	else if (lineSize == 32)
 	{
-		// 2000 lines in the cache
-		for (int i = 251; i < 256; i++)
-		{
-			offset = address[i];
-		}
-		// getting index
-		for (int i = 240; i < 251; i++)
-		{
-			index = address[i];
-		}
-		// getting tag
-		for (int i = 1; i < 240; i++)
-		{
-			tag = address[i];
-		}
-		// getting valid 
-		valid = address[0];
+		offsetBits = 5;
+		indexBits = 11;
+		tagBits = 240;
 	}
 	else if (lineSize == 64)
 	{
-		// 1000 lines in the cache
-		for (int i = 506; i < 512; i++)
-		{
-			offset = address[i];
-		}
-		// getting index
-		for (int i = 495; i < 506; i++)
-		{
-			index = address[i];
-		}
-		// getting tag
-		for (int i = 1; i < 495; i++)
-		{
-			tag = address[i];
-		}
-		// getting valid 
-		valid = address[0];
+		offsetBits = 6;
+		indexBits = 10;
+		tagBits = 496;
 	}
 	else if (lineSize == 128)
 	{
-		// 500 lines in the cache
-		for (int i = 1014; i < 1024; i++)
-		{
-			offset = address[i];
-		}
-		// getting index
-		for (int i = 1005; i < 1014; i++)
-		{
-			index = address[i];
-		}
-		// getting tag
-		for (int i = 1; i < 1005; i++)
-		{
-			tag = address[i];
-		}
-		// getting valid 
-		valid = address[0];
+		offsetBits = 7;
+		indexBits = 9;
+		tagBits = 1008;
 	}
+}
+
+unsigned int getOffset(unsigned int addr) 
+{
+    return addr & ((1 << offsetBits) - 1); // Mask for offset
+}
+
+unsigned int getIndex(unsigned int addr) 
+{
+    return (addr >> offsetBits) & ((1 << indexBits) - 1); // Shift and mask for index
+}
+
+unsigned int getTag(unsigned int addr) 
+{
+    return addr >> (offsetBits + indexBits); // Shift for tag
 }
 
 // Direct Mapped Cache Simulator
@@ -179,6 +246,18 @@ cacheResType cacheSimDM(unsigned int addr, unsigned int lineSize)
 	// returns whether it caused a cache miss or a cache hit
 
     addressBreakdown(addr, lineSize);
+	offset = getOffset(addr);
+	index = getIndex(addr);
+	tag = getTag(addr);
+
+	string address = unsignedIntToBinaryString(addr);
+	valid = address[0];
+
+	cout << "Address = " << address << endl;
+	cout << "Offset = " << unsignedIntToBinaryString(offset) << endl;
+	cout << "Index = " << unsignedIntToBinaryString(index) << endl;
+	cout << "Tag = " << unsignedIntToBinaryString(tag) << endl;
+	cout << "Valid = " << valid << endl;
 
 	// The current implementation assumes there is no cache; so, every transaction is a miss
 	return MISS;
@@ -222,7 +301,7 @@ int main()
     for(int inst=0;inst<NO_OF_Iterations;inst++)
 	{
 		addr = memGen2();
-		r = cacheSimFA(addr, 16);
+		r = cacheSimFA(addr, 32);
 		if(r == HIT) hit++;
 		cout <<"0x" << setfill('0') << setw(8) << hex << addr <<" ("<< msg[r] <<")\n";
 	}
