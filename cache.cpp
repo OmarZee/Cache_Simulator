@@ -11,7 +11,7 @@ using namespace std;
 #define CACHE_SIZE (64*1024)
 
 
-vector<vector<int>> cache;
+vector<int> cache;
 char valid;
 
 int offset, index, tag;
@@ -33,6 +33,7 @@ unsigned int rand_()
     return (m_z << 16) + m_w;  /* 32-bit result */
 }
 
+// Convert an unsigned int to a binary string
 string unsignedIntToBinaryString(unsigned int n) 
 {
     if (n == 0) return "0";
@@ -45,6 +46,7 @@ string unsignedIntToBinaryString(unsigned int n)
     return binaryString;
 }
 
+// Memory address generators
 unsigned int memGen1()
 {
 	static unsigned int addr=0;
@@ -80,22 +82,19 @@ unsigned int memGen6()
 	return (addr+=32)%(64*4*1024);
 }
 
-
-unsigned int log2(unsigned int x) {
+// Calculate the log base 2 of a number
+unsigned int log2(unsigned int x) 
+{
     return log(x) / log(2);
 }
 
-void calculateAndPrintBits(unsigned int cacheLineSize) {
+// Calculate the number of lines, offset, index, and tag bits
+void calculateBits(unsigned int cacheLineSize) 
+{
     numberOfLines = CACHE_SIZE / cacheLineSize;
     offsetSize = log2(cacheLineSize);
     indexSize = log2(numberOfLines);
     tagSize = 32 - indexSize - offsetSize;
-
-    // cout << "Cache Line Size: " << cacheLineSize << " bytes" << endl;
-    // cout << "Offset bits: " << offsetSize << endl;
-    // cout << "Index bits: " << indexSize << endl;
-    // cout << "Tag bits: " << tagSize << endl;
-    // cout << "---------------------------------" << endl;
 }
 
 unsigned int getOffset(unsigned int addr) 
@@ -116,10 +115,8 @@ unsigned int getTag(unsigned int addr)
 // Direct Mapped Cache Simulator
 cacheResType cacheSimDM(unsigned int addr, unsigned int lineSize)
 {	
-	calculateAndPrintBits(lineSize);
-	// This function accepts the memory address for the memory transaction and 
-	// returns whether it caused a cache miss or a cache hit
-	// Dividing the address into three parts: offset, index, and tag
+	calculateBits(lineSize);
+
 	offset = getOffset(addr);
 	index = getIndex(addr);
 	tag = getTag(addr);
@@ -131,86 +128,62 @@ cacheResType cacheSimDM(unsigned int addr, unsigned int lineSize)
 		valid = '1';
 	}
 
-	// Print the address, offset, index, tag, and valid bit
-	// cout << "Address = " << address << endl;
-	// cout << "Offset = " << unsignedIntToBinaryString(offset) << endl;
-	// cout << "Index = " << unsignedIntToBinaryString(index) << endl;
-	// cout << "Tag = " << unsignedIntToBinaryString(tag) << endl;
-	// cout << "Valid = " << valid << endl;
+	cache.resize(numberOfLines, -1); // Initialize the cache with -1
 
-	cache.resize(numberOfLines, vector<int>(lineSize / 4, -1)); // Initialize the cache with -1
-
-
-	if(cache[index][offset/4] == -1) { // If the cache is empty
-		cache[index][offset/4] = tag; // Store the tag
+	if(cache[index] == -1) { // If the cache is empty
+		cache[index] = tag; // Store the tag
 		return MISS; // Return miss(cold start miss)
 	}
-	else if(cache[index][offset/4] == tag) { // If the cache is not empty and the tag matches
+	else if(cache[index] == tag) { // If the cache is not empty and the tag matches
 		return HIT; // Return hit
 	}
 	else { // If the cache is not empty and the tag does not match
-		cache[index][offset/4] = tag; // Update the tag
+		cache[index] = tag; // Update the tag
 		return MISS; // Return miss(conflict miss)
 	}
 
-	// The current implementation assumes there is no cache; so, every transaction is a miss
-	// return MISS;
 }
 
 // Fully Associative Cache Simulator
 cacheResType cacheSimFA(unsigned int addr, unsigned int lineSize)
 {	
-	// This function accepts the memory address for the read and 
-	// returns whether it caused a cache miss or a cache hit
 
-	calculateAndPrintBits(lineSize);
-	// This function accepts the memory address for the memory transaction and 
-	// returns whether it caused a cache miss or a cache hit
-	// Dividing the address into three parts: offset, index, and tag
+	calculateBits(lineSize);
 
-	tag = addr;
+	tag = addr >> offsetSize; // Use tag as higher bits of address
 
-	cache.resize(numberOfLines, vector<int>(lineSize / 4, -1)); // Initialize the cache with -1
+	if (cache.empty()) {
+        cache.resize(numberOfLines, -1); // Initialize cache on first use
+    }
 
-	int counter = 0;
+	// Check if tag is already in cache
+    for(int i = 0; i < numberOfLines; i++) 
+	{
+        if(cache[i] == tag) // If tags are equal then it is a HIT
+		{
+            return HIT; 
+        }
+    }
 
-	for(int i = 0; i < numberOfLines; i++) {
-		for(int j = 0; j < lineSize/4 + 1; j++) {
-			if(cache[i][j] == tag) {
-				return HIT;
-			}
-			else if(cache[i][j] == -1) {
-				cache[i][j] = tag;
-				return MISS;
-			}
-			if(counter == numberOfLines - 1){
-				int x = rand() % numberOfLines; // Randomly select an index
-				cache[x][j] = tag; // Update the tag
-				return MISS; // Capacity miss
-			}
-		}
-		counter++;
-	}
-	// if(cache[index][offset/4] == -1) { // If the cache is empty
-	// 	cache[index][offset/4] = tag; // Store the tag
-	// 	return MISS; // Return miss(cold start miss)
-	// }
-	// else if(cache[index][offset/4] == tag) { // If the cache is not empty and the tag matches
-	// 	return HIT; // Return hit
-	// }
-	// else { // If the cache is at full capacity and the tag does not match
-	// 	index = rand() % numberOfLines; // Randomly select an index
-	// 	cache[index][offset/4] = tag; // Update the tag
-	// 	return MISS; // Return miss(capacity miss)
-	// }
+    // Look for an empty slot
+    for(int i = 0; i < numberOfLines; i++) 
+	{
+        if(cache[i] == -1) 
+		{
+            cache[i] = tag; // Replace with new tag
+            return MISS; //Return miss (cold start miss)
+        }
+    }
 
-	// The current implementation assumes there is no cache; so, every transaction is a miss
-	return MISS;
+	// If cache is full and no match, replace a random line
+    int randomIndex = rand() % numberOfLines;
+    cache[randomIndex] = tag; // Replace with new tag
+    return MISS; // Return miss (capacity miss)
 }
 
 char *msg[2] = {"Miss","Hit"};
 
-#define NO_OF_Iterations 10000 // Change to 1,000,000
+#define NO_OF_Iterations 1000000 // Change to 1,000,000
 
 int main()
 {
@@ -219,19 +192,16 @@ int main()
 	unsigned int addr;
 	int lineSize = 16;
 
-	// Cache initialization
-	//cache[64000/lineSize][lineSize/4]; // Size of cache rows and columns according to lineSize
-
 	cout << "Direct Mapped Cache Simulator\n";
 
 	for(int inst=0;inst<NO_OF_Iterations;inst++)
 	{
-		addr = memGen2();
+		addr = memGen6();
 		r = cacheSimDM(addr, lineSize);
 		if(r == HIT) hit++;
-		cout <<"0x" << setfill('0') << setw(8)  << addr <<" ("<< msg[r] <<")\n";
+		//cout <<"0x" << setfill('0') << setw(8)  << addr <<" ("<< msg[r] <<")\n";
 	}
-	cout << "Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
+	cout << "DM Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
 
 	cout << "-----------------------------------------------------------------------------------------------" << endl;
 
@@ -239,12 +209,13 @@ int main()
 
 	for(int inst=0;inst<NO_OF_Iterations;inst++)
 	{
-		addr = memGen2();
+		addr = memGen1();
 		r = cacheSimFA(addr, lineSize);
 		if(r == HIT) hit++;
-		cout <<"0x" << setfill('0') << setw(8) << addr <<" ("<< msg[r] <<")\n";
+		//cout <<"0x" << setfill('0') << setw(8) << addr <<" ("<< msg[r] <<")\n";
 	}
 	cout << "FA Hit ratio = " << (100*hit/NO_OF_Iterations)<< "%" << endl;
+	cout << "-----------------------------------------------------------------------------------------------" << endl;
 
 	return 0;
 }
